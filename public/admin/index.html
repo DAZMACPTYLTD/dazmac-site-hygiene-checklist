@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Site Hygiene Records</title>
+  <style>
+    :root {
+      --green: #1a6b3a;
+      --green-light: #e8f4ec;
+      --red: #c0392b;
+      --red-light: #fdecea;
+      --amber: #b85c00;
+      --amber-light: #fff3e0;
+      --grey: #4a5568;
+      --grey-light: #f7f8fa;
+      --border: #d1d9e0;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--grey-light); color: #1a202c; }
+
+    .header { background: #1a2744; color: white; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 17px; font-weight: 700; }
+    .header p { font-size: 12px; opacity: 0.7; margin-top: 2px; }
+    .back-link { color: rgba(255,255,255,0.7); font-size: 12px; text-decoration: none; border: 1px solid rgba(255,255,255,0.3); padding: 4px 10px; border-radius: 4px; }
+
+    .container { max-width: 960px; margin: 0 auto; padding: 20px 16px; }
+
+    .filters { background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 14px 16px; margin-bottom: 20px; display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+    .filter-group { display: flex; flex-direction: column; gap: 4px; }
+    .filter-group label { font-size: 11px; font-weight: 700; color: var(--grey); text-transform: uppercase; }
+    .filter-group select, .filter-group input { border: 1.5px solid var(--border); border-radius: 6px; padding: 8px 10px; font-size: 13px; background: white; }
+    .filter-btn { background: #1a2744; color: white; border: none; border-radius: 6px; padding: 9px 20px; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    @media (max-width: 600px) { .stats { grid-template-columns: repeat(2,1fr); } }
+    .stat-card { background: white; border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow); }
+    .stat-card .num { font-size: 28px; font-weight: 800; }
+    .stat-card .lbl { font-size: 12px; color: var(--grey); margin-top: 2px; }
+    .stat-card.issues .num { color: var(--red); }
+    .stat-card.ok .num { color: var(--green); }
+
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; }
+    th { background: #2d3748; color: white; padding: 11px 14px; font-size: 12px; text-align: left; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+    td { padding: 11px 14px; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--grey-light); }
+    .badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+    .badge.ok { background: var(--green-light); color: var(--green); }
+    .badge.issue { background: var(--red-light); color: var(--red); }
+    .badge.nsw { background: #e3edf8; color: #1565a8; }
+    .badge.qld { background: #fff0cc; color: #7a4f00; }
+    .badge.wa { background: #f0e8f8; color: #5b1a9b; }
+    .view-btn { background: #1a2744; color: white; border: none; border-radius: 5px; padding: 5px 12px; font-size: 12px; cursor: pointer; }
+    .view-btn:hover { background: #2d3a5e; }
+
+    .loading { text-align: center; padding: 40px; color: var(--grey); }
+    .empty { text-align: center; padding: 40px; color: var(--grey); font-size: 14px; }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 500; overflow-y: auto; padding: 20px; }
+    .modal-overlay.open { display: flex; justify-content: center; align-items: flex-start; }
+    .modal { background: white; border-radius: 12px; max-width: 700px; width: 100%; padding: 24px; position: relative; margin: auto; }
+    .modal-close { position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 22px; cursor: pointer; color: var(--grey); }
+    .modal h2 { font-size: 17px; font-weight: 800; margin-bottom: 16px; }
+    .modal-section { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+    .modal-section:last-child { border-bottom: none; }
+    .modal-section h3 { font-size: 12px; text-transform: uppercase; font-weight: 700; color: var(--grey); letter-spacing: 0.5px; margin-bottom: 10px; }
+    .modal-row { display: flex; gap: 8px; margin-bottom: 6px; }
+    .modal-key { font-size: 12px; font-weight: 600; min-width: 130px; color: var(--grey); }
+    .modal-val { font-size: 13px; }
+    .modal-photos { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .modal-photos img { width: 90px; height: 90px; object-fit: cover; border-radius: 6px; border: 2px solid var(--border); cursor: pointer; }
+    .issue-note { background: var(--amber-light); border: 1px solid #f0a050; border-radius: 6px; padding: 10px 12px; font-size: 13px; margin-top: 6px; }
+
+    .auth-wall { display: none; position: fixed; inset: 0; background: #1a2744; z-index: 999; display: flex; align-items: center; justify-content: center; }
+    .auth-box { background: white; border-radius: 12px; padding: 32px; max-width: 340px; width: 100%; text-align: center; }
+    .auth-box h2 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+    .auth-box p { font-size: 13px; color: var(--grey); margin-bottom: 20px; }
+    .auth-box input { border: 2px solid var(--border); border-radius: 8px; padding: 12px; width: 100%; font-size: 15px; margin-bottom: 12px; text-align: center; letter-spacing: 3px; }
+    .auth-box button { background: #1a2744; color: white; border: none; border-radius: 8px; padding: 12px; width: 100%; font-size: 15px; font-weight: 700; cursor: pointer; }
+    .auth-err { color: var(--red); font-size: 13px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+
+<!-- Auth wall -->
+<div id="authWall" class="auth-wall">
+  <div class="auth-box">
+    <h2>Admin Access</h2>
+    <p>Enter the admin PIN to view site hygiene records</p>
+    <input type="password" id="pinInput" placeholder="PIN" maxlength="6" onkeypress="if(event.key==='Enter')checkPin()" />
+    <button onclick="checkPin()">Unlock</button>
+    <div class="auth-err" id="authErr"></div>
+  </div>
+</div>
+
+<div id="mainContent" style="display:none">
+  <div class="header">
+    <div>
+      <h1>Site Hygiene — Admin Records</h1>
+      <p>Class 1.3 · DAFF December 2025</p>
+    </div>
+    <a href="/" class="back-link">← New Checklist</a>
+  </div>
+
+  <div class="container">
+    <div class="filters">
+      <div class="filter-group">
+        <label>Site</label>
+        <select id="filterSite">
+          <option value="">All Sites</option>
+          <option value="NSW">NSW</option>
+          <option value="QLD">QLD</option>
+          <option value="WA">WA</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>From</label>
+        <input type="date" id="filterFrom" />
+      </div>
+      <div class="filter-group">
+        <label>To</label>
+        <input type="date" id="filterTo" />
+      </div>
+      <div class="filter-group">
+        <label>Has Issues</label>
+        <select id="filterIssues">
+          <option value="">All</option>
+          <option value="yes">Issues Only</option>
+          <option value="no">No Issues</option>
+        </select>
+      </div>
+      <button class="filter-btn" onclick="loadRecords()">Apply</button>
+      <button class="filter-btn" style="background:#5b4a9b" onclick="exportCSV()">Export CSV</button>
+    </div>
+
+    <div class="stats" id="statsRow">
+      <div class="stat-card ok"><div class="num" id="statTotal">—</div><div class="lbl">Total Submissions</div></div>
+      <div class="stat-card issues"><div class="num" id="statIssues">—</div><div class="lbl">With Issues</div></div>
+      <div class="stat-card"><div class="num" id="statNSW">—</div><div class="lbl">NSW</div></div>
+      <div class="stat-card"><div class="num" id="statQLD">—</div><div class="lbl">QLD &amp; WA</div></div>
+    </div>
+
+    <div id="tableWrap">
+      <div class="loading" id="loadingMsg">Loading records…</div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script>
+  let allRecords = [];
+  const ADMIN_PIN = '7788'; // Change this! Should match server-side env var
+
+  function checkPin() {
+    const pin = document.getElementById('pinInput').value;
+    if (pin === ADMIN_PIN) {
+      document.getElementById('authWall').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'block';
+      loadRecords();
+    } else {
+      document.getElementById('authErr').textContent = 'Incorrect PIN';
+    }
+  }
+
+  async function loadRecords() {
+    document.getElementById('loadingMsg') && (document.getElementById('tableWrap').innerHTML = '<div class="loading">Loading…</div>');
+    const site = document.getElementById('filterSite').value;
+    const from = document.getElementById('filterFrom').value;
+    const to = document.getElementById('filterTo').value;
+    const issues = document.getElementById('filterIssues').value;
+
+    try {
+      const params = new URLSearchParams();
+      if (site) params.set('site', site);
+      if (from) params.set('from', from);
+      if (to) params.set('to', to);
+      if (issues) params.set('issues', issues);
+
+      const res = await fetch(`/.netlify/functions/get-records?${params}`, {
+        headers: { 'x-admin-pin': ADMIN_PIN }
+      });
+      const data = await res.json();
+      allRecords = data.records || [];
+      renderTable(allRecords);
+      renderStats(allRecords);
+    } catch(e) {
+      document.getElementById('tableWrap').innerHTML = '<div class="empty">Failed to load records. Check your connection.</div>';
+    }
+  }
+
+  function hasIssues(rec) {
+    const checks = rec.checks || {};
+    return Object.values(checks).some(c => c.status === 'issue' || c.status === 'triggered');
+  }
+
+  function renderStats(records) {
+    document.getElementById('statTotal').textContent = records.length;
+    document.getElementById('statIssues').textContent = records.filter(hasIssues).length;
+    document.getElementById('statNSW').textContent = records.filter(r => r.meta?.site === 'NSW').length;
+    document.getElementById('statQLD').textContent = records.filter(r => ['QLD','WA'].includes(r.meta?.site)).length;
+  }
+
+  function renderTable(records) {
+    if (records.length === 0) {
+      document.getElementById('tableWrap').innerHTML = '<div class="empty">No records found.</div>';
+      return;
+    }
+    let html = `<table>
+      <thead><tr>
+        <th>Date</th><th>Site</th><th>Accredited Person</th><th>Week Of</th>
+        <th>7.1 Daily</th><th>7.5 Weekly</th><th>Immediate</th><th>Detail</th>
+      </tr></thead><tbody>`;
+
+    records.forEach((rec, i) => {
+      const site = rec.meta?.site || '—';
+      const person = rec.meta?.accreditedPerson || '—';
+      const week = rec.meta?.weekDate || '—';
+      const submitted = rec.submittedAt ? new Date(rec.submittedAt).toLocaleDateString('en-AU') : '—';
+
+      const s71 = rec.checks?.['7.1']?.status;
+      const s75 = rec.checks?.['7.5']?.status;
+      const imm = ['7.2','7.3'].some(ref => rec.checks?.[ref]?.status === 'triggered');
+      const siteClass = site.toLowerCase();
+
+      html += `<tr>
+        <td>${submitted}</td>
+        <td><span class="badge ${siteClass}">${site}</span></td>
+        <td>${person}</td>
+        <td>${week}</td>
+        <td>${s71 ? `<span class="badge ${s71 === 'ok' ? 'ok' : 'issue'}">${s71 === 'ok' ? '✔ Clear' : '✘ Issue'}</span>` : '—'}</td>
+        <td>${s75 ? `<span class="badge ${s75 === 'ok' ? 'ok' : 'issue'}">${s75 === 'ok' ? '✔ Clear' : '✘ Found'}</span>` : '—'}</td>
+        <td>${imm ? '<span class="badge issue">⚠ Triggered</span>' : '<span class="badge ok">Clear</span>'}</td>
+        <td><button class="view-btn" onclick="viewRecord(${i})">View</button></td>
+      </tr>`;
+    });
+
+    html += '</tbody></table>';
+    document.getElementById('tableWrap').innerHTML = html;
+  }
+
+  function viewRecord(idx) {
+    const rec = allRecords[idx];
+    const m = rec.meta || {};
+    const s = rec.signoff || {};
+    const refs = ['7.1','7.5','7.2','7.3'];
+    const refLabels = {
+      '7.1': 'Daily Walk — Animals & Insects',
+      '7.5': 'Weekly Walk — Vegetation',
+      '7.2': 'Immediate: Live Animal',
+      '7.3': 'Immediate: Live Insects',
+    };
+
+    let checksHtml = '';
+    refs.forEach(ref => {
+      const c = rec.checks?.[ref] || {};
+      if (!c.status) return;
+      const isIssue = c.status === 'issue' || c.status === 'triggered';
+      checksHtml += `<div style="margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <strong>${ref}</strong> — ${refLabels[ref]}
+          <span class="badge ${isIssue ? 'issue' : 'ok'}">${isIssue ? '✘ Issue/Triggered' : '✔ Clear'}</span>
+        </div>`;
+      if (c.days) {
+        const dayStr = Object.entries(c.days).filter(([,v])=>v).map(([d])=>d.toUpperCase()).join(', ');
+        if (dayStr) checksHtml += `<div class="modal-row"><span class="modal-key">Days completed:</span><span class="modal-val">${dayStr}</span></div>`;
+      }
+      if (c.notes) checksHtml += `<div class="issue-note">${c.notes}</div>`;
+      if (c.photos?.length) {
+        checksHtml += `<div class="modal-photos">`;
+        c.photos.forEach(p => { checksHtml += `<img src="${p.data}" alt="${p.name}" onclick="window.open(this.src)" />`; });
+        checksHtml += `</div>`;
+      }
+      checksHtml += `</div>`;
+    });
+
+    const records77 = rec.records || {};
+    document.getElementById('modalContent').innerHTML = `
+      <h2>Checklist — ${m.site || '—'} — Week of ${m.weekDate || '—'}</h2>
+      <div class="modal-section">
+        <h3>Details</h3>
+        <div class="modal-row"><span class="modal-key">Submitted:</span><span class="modal-val">${rec.submittedAt ? new Date(rec.submittedAt).toLocaleString('en-AU') : '—'}</span></div>
+        <div class="modal-row"><span class="modal-key">Site:</span><span class="modal-val">${m.site}</span></div>
+        <div class="modal-row"><span class="modal-key">Accredited Person:</span><span class="modal-val">${m.accreditedPerson}</span></div>
+        <div class="modal-row"><span class="modal-key">Accreditation No.:</span><span class="modal-val">${m.accreditationNo || '—'}</span></div>
+        <div class="modal-row"><span class="modal-key">Signed by:</span><span class="modal-val">${s.name || '—'}</span></div>
+        <div class="modal-row"><span class="modal-key">Date completed:</span><span class="modal-val">${s.date || '—'}</span></div>
+      </div>
+      <div class="modal-section">
+        <h3>Monitoring Checks</h3>
+        ${checksHtml || '<em style="color:#888;font-size:13px">No checks recorded</em>'}
+      </div>
+      <div class="modal-section">
+        <h3>Records Compliance</h3>
+        <div class="modal-row"><span class="modal-key">7.7 Register:</span><span class="modal-val">${records77['7.7'] ? '✔ Confirmed' : '—'}</span></div>
+        <div class="modal-row"><span class="modal-key">7.8 DAFF Access:</span><span class="modal-val">${records77['7.8'] ? '✔ Confirmed' : '—'}</span></div>
+        <div class="modal-row"><span class="modal-key">7.6 Veg disposed:</span><span class="modal-val">${records77['7.6'] ? '✔ Yes' : '—'}</span></div>
+      </div>
+      ${s.generalNotes ? `<div class="modal-section"><h3>General Notes</h3><p style="font-size:13px">${s.generalNotes}</p></div>` : ''}
+    `;
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+  }
+
+  document.getElementById('modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal')) closeModal();
+  });
+
+  function exportCSV() {
+    if (!allRecords.length) return alert('No records to export');
+    const rows = [['Submitted','Site','Week Of','Accredited Person','Accreditation No','7.1 Status','7.1 Notes','7.5 Status','7.5 Notes','7.2 Status','7.3 Status','7.7 Register','7.8 DAFF','Signed By']];
+    allRecords.forEach(rec => {
+      const m = rec.meta || {};
+      const c = rec.checks || {};
+      const r = rec.records || {};
+      rows.push([
+        rec.submittedAt ? new Date(rec.submittedAt).toLocaleDateString('en-AU') : '',
+        m.site, m.weekDate, m.accreditedPerson, m.accreditationNo || '',
+        c['7.1']?.status || '', (c['7.1']?.notes || '').replace(/\n/g,' '),
+        c['7.5']?.status || '', (c['7.5']?.notes || '').replace(/\n/g,' '),
+        c['7.2']?.status || '', c['7.3']?.status || '',
+        r['7.7'] ? 'Yes' : 'No', r['7.8'] ? 'Yes' : 'No',
+        rec.signoff?.name || ''
+      ]);
+    });
+    const csv = rows.map(r => r.map(v => `"${(v||'').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `site-hygiene-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+  }
+</script>
+</body>
+</html>
