@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class 1.3 Site Hygiene Checklist — DAZMAC</title>
+  <style>
+    :root {
+      --green: #1a6b3a;
+      --green-light: #e8f4ec;
+      --green-mid: #2d8a50;
+      --amber: #b85c00;
+      --amber-light: #fff3e0;
+      --red: #c0392b;
+      --red-light: #fdecea;
+      --grey: #4a5568;
+      --grey-light: #f7f8fa;
+      --border: #d1d9e0;
+      --white: #ffffff;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--grey-light); color: #1a202c; font-size: 15px; }
+
+    .header {
+      background: var(--green);
+      color: white;
+      padding: 16px 20px;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .header h1 { font-size: 16px; font-weight: 700; letter-spacing: 0.3px; }
+    .header p { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+    .header-row { display: flex; justify-content: space-between; align-items: center; }
+    .admin-link { color: rgba(255,255,255,0.7); font-size: 12px; text-decoration: none; border: 1px solid rgba(255,255,255,0.3); padding: 4px 10px; border-radius: 4px; }
+
+    .container { max-width: 760px; margin: 0 auto; padding: 16px; }
+
+    .card { background: white; border-radius: 10px; box-shadow: var(--shadow); margin-bottom: 16px; overflow: hidden; }
+    .card-header { padding: 14px 16px; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.6px; }
+    .card-header.daily { background: var(--green); color: white; }
+    .card-header.weekly { background: #1565a8; color: white; }
+    .card-header.records { background: #5b4a9b; color: white; }
+    .card-header.immediate { background: var(--red); color: white; }
+    .card-header.meta { background: #2d3748; color: white; }
+
+    .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px; }
+    @media (max-width: 480px) { .meta-grid { grid-template-columns: 1fr; } }
+    .field-group { display: flex; flex-direction: column; gap: 5px; }
+    .field-group label { font-size: 12px; font-weight: 600; color: var(--grey); text-transform: uppercase; letter-spacing: 0.4px; }
+    .field-group select, .field-group input { border: 1.5px solid var(--border); border-radius: 6px; padding: 10px 12px; font-size: 14px; width: 100%; background: white; }
+    .field-group select:focus, .field-group input:focus { outline: none; border-color: var(--green); }
+
+    .checklist-item { border-bottom: 1px solid var(--border); }
+    .checklist-item:last-child { border-bottom: none; }
+
+    .item-header { display: flex; align-items: flex-start; gap: 10px; padding: 14px 16px; cursor: pointer; }
+    .item-ref { background: var(--green-light); color: var(--green); font-size: 11px; font-weight: 700; padding: 3px 7px; border-radius: 4px; white-space: nowrap; margin-top: 1px; }
+    .item-ref.weekly { background: #e3edf8; color: #1565a8; }
+    .item-ref.records-ref { background: #ede8f8; color: #5b4a9b; }
+    .item-ref.imm { background: var(--red-light); color: var(--red); }
+    .item-title { flex: 1; font-weight: 600; font-size: 14px; line-height: 1.4; }
+    .item-freq { font-size: 11px; color: var(--grey); margin-top: 2px; font-weight: 400; }
+
+    .item-body { padding: 0 16px 14px 16px; }
+    .item-body p { font-size: 13px; color: var(--grey); line-height: 1.6; background: var(--grey-light); padding: 10px 12px; border-radius: 6px; margin-bottom: 12px; }
+    .item-body ul { font-size: 13px; color: var(--grey); line-height: 1.6; background: var(--grey-light); padding: 10px 12px 10px 28px; border-radius: 6px; margin-bottom: 12px; }
+
+    /* Daily checkboxes Mon–Fri */
+    .day-checks { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    .day-check { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .day-check span { font-size: 11px; font-weight: 600; color: var(--grey); }
+    .day-check input[type=checkbox] { width: 24px; height: 24px; accent-color: var(--green); cursor: pointer; }
+    .time-input { font-size: 12px; border: 1px solid var(--border); border-radius: 4px; padding: 3px 5px; width: 60px; text-align: center; }
+
+    /* Status radio */
+    .status-row { display: flex; gap: 10px; margin-bottom: 10px; }
+    .status-btn { flex: 1; border: 2px solid var(--border); border-radius: 8px; padding: 10px; text-align: center; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.15s; }
+    .status-btn.ok { color: var(--green); }
+    .status-btn.ok.selected, .status-btn.ok:hover { background: var(--green-light); border-color: var(--green); }
+    .status-btn.issue { color: var(--red); }
+    .status-btn.issue.selected, .status-btn.issue:hover { background: var(--red-light); border-color: var(--red); }
+    .status-btn.na { color: var(--grey); }
+    .status-btn.na.selected, .status-btn.na:hover { background: var(--grey-light); border-color: var(--grey); }
+
+    .issue-section { background: var(--amber-light); border: 1.5px solid #f0a050; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+    .issue-section label { font-size: 12px; font-weight: 700; color: var(--amber); display: block; margin-bottom: 6px; }
+    .issue-section textarea { width: 100%; border: 1.5px solid #f0a050; border-radius: 6px; padding: 8px 10px; font-size: 13px; min-height: 70px; resize: vertical; background: white; }
+    .issue-section textarea:focus { outline: none; border-color: var(--amber); }
+
+    .photo-upload { margin-top: 8px; }
+    .photo-upload label { font-size: 12px; font-weight: 700; color: var(--amber); display: block; margin-bottom: 6px; }
+    .photo-btn { display: inline-flex; align-items: center; gap: 6px; background: white; border: 2px dashed #f0a050; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 600; color: var(--amber); cursor: pointer; }
+    .photo-btn:hover { background: #fff8f0; }
+    .photo-btn input { display: none; }
+    .photo-previews { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .photo-thumb { position: relative; width: 72px; height: 72px; border-radius: 6px; overflow: hidden; border: 2px solid #f0a050; }
+    .photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .photo-thumb .remove { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+    .immediate-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; }
+    .immediate-check { width: 28px; height: 28px; accent-color: var(--red); cursor: pointer; flex-shrink: 0; }
+    .immediate-label { flex: 1; font-size: 14px; font-weight: 600; line-height: 1.4; }
+
+    .notes-field { padding: 0 16px 14px; }
+    .notes-field textarea { width: 100%; border: 1.5px solid var(--border); border-radius: 6px; padding: 10px; font-size: 13px; min-height: 80px; resize: vertical; }
+    .notes-field label { font-size: 12px; font-weight: 600; color: var(--grey); text-transform: uppercase; display: block; margin-bottom: 5px; }
+
+    .sign-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px; }
+    @media (max-width: 480px) { .sign-grid { grid-template-columns: 1fr; } }
+
+    .submit-area { padding: 20px 0 40px; text-align: center; }
+    .submit-btn { background: var(--green); color: white; border: none; border-radius: 10px; padding: 16px 48px; font-size: 16px; font-weight: 700; cursor: pointer; width: 100%; max-width: 400px; letter-spacing: 0.3px; }
+    .submit-btn:hover { background: var(--green-mid); }
+    .submit-btn:disabled { background: #a0aec0; cursor: not-allowed; }
+
+    .toast { display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1a202c; color: white; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 999; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+    .toast.show { display: block; }
+    .toast.success { background: var(--green); }
+    .toast.error { background: var(--red); }
+
+    .legend { font-size: 12px; color: var(--grey); padding: 10px 16px; border-top: 1px solid var(--border); background: var(--grey-light); }
+
+    .section-note { font-size: 12px; color: var(--grey); padding: 8px 16px 0; font-style: italic; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-row">
+    <div>
+      <h1>Class 1.3 — Site Hygiene Monitoring</h1>
+      <p>Table 7 · DAFF December 2025 · Accredited Persons Only</p>
+    </div>
+    <a href="/admin" class="admin-link">Admin ›</a>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- META -->
+  <div class="card">
+    <div class="card-header meta">Checklist Details</div>
+    <div class="meta-grid">
+      <div class="field-group">
+        <label>Site / Depot</label>
+        <select id="site" required>
+          <option value="">— Select site —</option>
+          <option value="NSW">NSW — Sydney</option>
+          <option value="QLD">QLD — Queensland</option>
+          <option value="WA">WA — Western Australia</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Week Commencing (Monday)</label>
+        <input type="date" id="weekDate" required />
+      </div>
+      <div class="field-group">
+        <label>Accredited Person</label>
+        <input type="text" id="accreditedPerson" placeholder="Full name" required />
+      </div>
+      <div class="field-group">
+        <label>Accreditation No.</label>
+        <input type="text" id="accreditationNo" placeholder="e.g. AP-12345" />
+      </div>
+    </div>
+    <div class="legend">✔ = Done / No issues &nbsp;|&nbsp; ✘ = Issue found — record details in Notes &nbsp;|&nbsp; Daily = tick Mon–Fri &nbsp;|&nbsp; Weekly = tick once per week (Mon column)</div>
+  </div>
+
+  <!-- 7.1 DAILY -->
+  <div class="card">
+    <div class="card-header daily">Daily Monitoring — Condition 7.1 — Complete Every Working Day</div>
+    <div class="checklist-item">
+      <div class="item-header">
+        <span class="item-ref">7.1</span>
+        <div>
+          <div class="item-title">Walk biosecurity area — inspect all goods for animals, insects and signs of activity</div>
+          <div class="item-freq">DAILY — Mon to Fri</div>
+        </div>
+      </div>
+      <div class="item-body">
+        <ul>
+          <li>Live animals — rodents, reptiles, birds, snails, frogs</li>
+          <li>Live insects — crawling, flying or jumping insects</li>
+          <li>Evidence — droppings, tracks, gnaw marks, feathers, slime trails, webbing, egg cases, shed skins, tunnels in timber/packaging</li>
+          <li>Check goods, containers, floor surfaces, racking, wall junctions, drains and corners</li>
+        </ul>
+        <div class="day-checks" id="7.1-days">
+          <div class="day-check"><span>MON</span><input type="checkbox" data-day="mon" data-ref="7.1" /><input type="time" class="time-input" data-time="mon" data-ref="7.1" /></div>
+          <div class="day-check"><span>TUE</span><input type="checkbox" data-day="tue" data-ref="7.1" /><input type="time" class="time-input" data-time="tue" data-ref="7.1" /></div>
+          <div class="day-check"><span>WED</span><input type="checkbox" data-day="wed" data-ref="7.1" /><input type="time" class="time-input" data-time="wed" data-ref="7.1" /></div>
+          <div class="day-check"><span>THU</span><input type="checkbox" data-day="thu" data-ref="7.1" /><input type="time" class="time-input" data-time="thu" data-ref="7.1" /></div>
+          <div class="day-check"><span>FRI</span><input type="checkbox" data-day="fri" data-ref="7.1" /><input type="time" class="time-input" data-time="fri" data-ref="7.1" /></div>
+        </div>
+        <div class="status-row">
+          <div class="status-btn ok" data-ref="7.1" data-val="ok">✔ No Issues</div>
+          <div class="status-btn issue" data-ref="7.1" data-val="issue">✘ Issue Found</div>
+        </div>
+        <div class="issue-section" id="issue-7.1" style="display:none">
+          <label>⚠ Issue Details / Corrective Action</label>
+          <textarea data-notes="7.1" placeholder="Describe what was found — type of animal/insect, location, time, goods involved, action taken…"></textarea>
+          <div class="photo-upload">
+            <label>📷 Attach Photos</label>
+            <label class="photo-btn">
+              📷 Take / Choose Photo
+              <input type="file" accept="image/*" capture="environment" multiple data-photos="7.1" onchange="handlePhotos(this,'7.1')" />
+            </label>
+            <div class="photo-previews" id="photos-7.1"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7.5 WEEKLY -->
+  <div class="card">
+    <div class="card-header weekly">Weekly Monitoring — Condition 7.5 — Once Per Week</div>
+    <div class="checklist-item">
+      <div class="item-header">
+        <span class="item-ref weekly">7.5</span>
+        <div>
+          <div class="item-title">Walk entire site — inspect all areas for vegetation, weeds and plant growth</div>
+          <div class="item-freq">WEEKLY — tick once (use Mon column)</div>
+        </div>
+      </div>
+      <div class="item-body">
+        <ul>
+          <li>Inside buildings and structures containing biosecurity areas</li>
+          <li>Outdoor biosecurity areas — container storage, treatment, unpack zones</li>
+          <li>Minimum 3-metre buffer surrounding all outdoor biosecurity areas</li>
+          <li>All areas where non-containerised goods move through site</li>
+          <li>Note: pot plants are NOT permitted inside any biosecurity area building</li>
+        </ul>
+        <div class="day-checks">
+          <div class="day-check"><span>THIS WEEK</span><input type="checkbox" data-day="mon" data-ref="7.5" /><input type="time" class="time-input" data-time="mon" data-ref="7.5" /></div>
+        </div>
+        <div class="status-row">
+          <div class="status-btn ok" data-ref="7.5" data-val="ok">✔ No Vegetation Found</div>
+          <div class="status-btn issue" data-ref="7.5" data-val="issue">✘ Vegetation Found</div>
+        </div>
+        <div class="issue-section" id="issue-7.5" style="display:none">
+          <label>⚠ Vegetation Found — Details</label>
+          <textarea data-notes="7.5" placeholder="Location, type of vegetation, action taken (bagged and disposed as biosecurity waste?)…"></textarea>
+          <div class="photo-upload">
+            <label>📷 Attach Photos</label>
+            <label class="photo-btn">
+              📷 Take / Choose Photo
+              <input type="file" accept="image/*" capture="environment" multiple data-photos="7.5" onchange="handlePhotos(this,'7.5')" />
+            </label>
+            <div class="photo-previews" id="photos-7.5"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECORDS -->
+  <div class="card">
+    <div class="card-header records">Records — Conditions 7.7 & 7.8</div>
+    <div class="section-note">Confirm the following ongoing obligations:</div>
+    <div class="checklist-item">
+      <div class="immediate-row">
+        <input type="checkbox" class="immediate-check" id="check-7.7" data-ref="7.7" />
+        <label for="check-7.7" class="immediate-label">
+          <strong>7.7</strong> — Monitoring register records completed for each activity this week (date, time, name, areas, findings, actions)
+        </label>
+      </div>
+    </div>
+    <div class="checklist-item">
+      <div class="immediate-row">
+        <input type="checkbox" class="immediate-check" id="check-7.8" data-ref="7.8" />
+        <label for="check-7.8" class="immediate-label">
+          <strong>7.8</strong> — DAFF insect traps undisturbed and site accessible for DAFF surveillance
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- IMMEDIATE ACTIONS -->
+  <div class="card">
+    <div class="card-header immediate">⚠ Immediate Actions — Conditions 7.2, 7.3, 7.6</div>
+    <div class="section-note">Tick only if triggered this week. Each requires immediate action AND notification.</div>
+    <div class="checklist-item">
+      <div class="item-header">
+        <span class="item-ref imm">7.2</span>
+        <div>
+          <div class="item-title">LIVE ANIMAL found on or in goods → Contain and call DAFF NOW</div>
+        </div>
+      </div>
+      <div class="item-body">
+        <ul>
+          <li>Do not release or attempt to kill the animal</li>
+          <li>Keep all goods in biosecurity area — do not move them</li>
+          <li>Contact supervisor and notify DAFF immediately</li>
+        </ul>
+        <div class="status-row">
+          <div class="status-btn ok" data-ref="7.2" data-val="clear">✔ Not triggered this week</div>
+          <div class="status-btn issue" data-ref="7.2" data-val="triggered">✘ Triggered — action taken</div>
+        </div>
+        <div class="issue-section" id="issue-7.2" style="display:none">
+          <label>⚠ Record Detection Details</label>
+          <textarea data-notes="7.2" placeholder="Type of animal, location, time, goods involved, who was notified, DAFF reference if available…"></textarea>
+          <div class="photo-upload">
+            <label>📷 Attach Photos</label>
+            <label class="photo-btn">
+              📷 Take / Choose Photo
+              <input type="file" accept="image/*" capture="environment" multiple data-photos="7.2" onchange="handlePhotos(this,'7.2')" />
+            </label>
+            <div class="photo-previews" id="photos-7.2"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="checklist-item">
+      <div class="item-header">
+        <span class="item-ref imm">7.3</span>
+        <div>
+          <div class="item-title">LIVE INSECTS found on or emerging from goods → Contain and call DAFF NOW</div>
+        </div>
+      </div>
+      <div class="item-body">
+        <ul>
+          <li>Where safe: attempt to contain insects</li>
+          <li>If uncontainable (external surfaces or floor): notify DAFF immediately</li>
+          <li>Keep goods in biosecurity area — do not move them</li>
+        </ul>
+        <div class="status-row">
+          <div class="status-btn ok" data-ref="7.3" data-val="clear">✔ Not triggered this week</div>
+          <div class="status-btn issue" data-ref="7.3" data-val="triggered">✘ Triggered — action taken</div>
+        </div>
+        <div class="issue-section" id="issue-7.3" style="display:none">
+          <label>⚠ Record Detection Details</label>
+          <textarea data-notes="7.3" placeholder="Type of insect, location, time, goods involved, containment action, DAFF notified…"></textarea>
+          <div class="photo-upload">
+            <label>📷 Attach Photos</label>
+            <label class="photo-btn">
+              📷 Take / Choose Photo
+              <input type="file" accept="image/*" capture="environment" multiple data-photos="7.3" onchange="handlePhotos(this,'7.3')" />
+            </label>
+            <div class="photo-previews" id="photos-7.3"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="checklist-item">
+      <div class="immediate-row">
+        <input type="checkbox" class="immediate-check" id="check-7.6" data-ref="7.6" />
+        <label for="check-7.6" class="immediate-label">
+          <strong>7.6</strong> — VEGETATION found and disposed as biosecurity waste (all vegetation collected, placed in designated biosecurity waste container, recorded)
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIGN OFF -->
+  <div class="card">
+    <div class="card-header meta">Sign-Off</div>
+    <div class="sign-grid">
+      <div class="field-group">
+        <label>Print Name</label>
+        <input type="text" id="signName" placeholder="Full name" required />
+      </div>
+      <div class="field-group">
+        <label>Date Completed</label>
+        <input type="date" id="signDate" required />
+      </div>
+    </div>
+    <div class="notes-field">
+      <label>Additional Notes</label>
+      <textarea id="generalNotes" placeholder="Any other observations or notes for this week…"></textarea>
+    </div>
+  </div>
+
+  <div class="submit-area">
+    <button class="submit-btn" id="submitBtn" onclick="submitForm()">Submit & Email Depot Manager</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // State
+  const photoData = {};
+  const statusValues = {};
+
+  // Set today's date defaults
+  window.addEventListener('DOMContentLoaded', () => {
+    const today = new Date();
+    document.getElementById('signDate').value = today.toISOString().split('T')[0];
+    // Set week commencing to most recent Monday
+    const day = today.getDay();
+    const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(today.setDate(diff));
+    document.getElementById('weekDate').value = monday.toISOString().split('T')[0];
+  });
+
+  // Status buttons
+  document.querySelectorAll('.status-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const ref = btn.dataset.ref;
+      const val = btn.dataset.val;
+      // Clear siblings
+      document.querySelectorAll(`.status-btn[data-ref="${ref}"]`).forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      statusValues[ref] = val;
+      // Show/hide issue section
+      const issueSection = document.getElementById(`issue-${ref}`);
+      if (issueSection) {
+        issueSection.style.display = (val === 'issue' || val === 'triggered') ? 'block' : 'none';
+      }
+    });
+  });
+
+  // Photo handling
+  function handlePhotos(input, ref) {
+    if (!photoData[ref]) photoData[ref] = [];
+    const files = Array.from(input.files);
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        photoData[ref].push({ name: file.name, data: e.target.result });
+        renderPreviews(ref);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function renderPreviews(ref) {
+    const container = document.getElementById(`photos-${ref}`);
+    if (!container) return;
+    container.innerHTML = '';
+    (photoData[ref] || []).forEach((photo, i) => {
+      const div = document.createElement('div');
+      div.className = 'photo-thumb';
+      div.innerHTML = `<img src="${photo.data}" /><button class="remove" onclick="removePhoto('${ref}',${i})">×</button>`;
+      container.appendChild(div);
+    });
+  }
+
+  function removePhoto(ref, idx) {
+    photoData[ref].splice(idx, 1);
+    renderPreviews(ref);
+  }
+
+  // Show toast
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast show ${type}`;
+    setTimeout(() => t.className = 'toast', 3500);
+  }
+
+  // Collect form data
+  function collectFormData() {
+    const refs = ['7.1','7.5','7.2','7.3'];
+    const checks = {};
+    refs.forEach(ref => {
+      const dayCheckboxes = {};
+      const dayTimes = {};
+      document.querySelectorAll(`input[type=checkbox][data-ref="${ref}"]`).forEach(cb => {
+        dayCheckboxes[cb.dataset.day] = cb.checked;
+      });
+      document.querySelectorAll(`input[type=time][data-ref="${ref}"]`).forEach(ti => {
+        dayTimes[ti.dataset.time] = ti.value;
+      });
+      const notesEl = document.querySelector(`textarea[data-notes="${ref}"]`);
+      checks[ref] = {
+        status: statusValues[ref] || null,
+        days: dayCheckboxes,
+        times: dayTimes,
+        notes: notesEl ? notesEl.value : '',
+        photos: (photoData[ref] || []).map(p => ({ name: p.name, data: p.data }))
+      };
+    });
+
+    return {
+      meta: {
+        site: document.getElementById('site').value,
+        weekDate: document.getElementById('weekDate').value,
+        accreditedPerson: document.getElementById('accreditedPerson').value,
+        accreditationNo: document.getElementById('accreditationNo').value,
+      },
+      checks,
+      records: {
+        '7.7': document.getElementById('check-7.7').checked,
+        '7.8': document.getElementById('check-7.8').checked,
+        '7.6': document.getElementById('check-7.6').checked,
+      },
+      signoff: {
+        name: document.getElementById('signName').value,
+        date: document.getElementById('signDate').value,
+        generalNotes: document.getElementById('generalNotes').value,
+      },
+      submittedAt: new Date().toISOString()
+    };
+  }
+
+  // Validate
+  function validate(data) {
+    if (!data.meta.site) return 'Please select a site / depot.';
+    if (!data.meta.weekDate) return 'Please enter the week commencing date.';
+    if (!data.meta.accreditedPerson.trim()) return 'Please enter the accredited person name.';
+    if (!data.signoff.name.trim()) return 'Please enter a print name for sign-off.';
+    if (!data.signoff.date) return 'Please enter the completion date.';
+    return null;
+  }
+
+  // Submit
+  async function submitForm() {
+    const data = collectFormData();
+    const err = validate(data);
+    if (err) { showToast(err, 'error'); return; }
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+
+    try {
+      const res = await fetch('/.netlify/functions/submit-checklist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      if (res.ok) {
+        showToast('Checklist submitted — depot manager notified ✔', 'success');
+        btn.textContent = '✔ Submitted';
+        setTimeout(() => {
+          if (confirm('Submission successful! Start a new checklist?')) location.reload();
+        }, 1500);
+      } else {
+        throw new Error(result.error || 'Submission failed');
+      }
+    } catch (e) {
+      showToast('Error: ' + e.message, 'error');
+      btn.disabled = false;
+      btn.textContent = 'Submit & Email Depot Manager';
+    }
+  }
+</script>
+</body>
+</html>
