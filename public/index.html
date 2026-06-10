@@ -82,11 +82,12 @@
     .item-body ul { font-size: 13px; color: var(--grey); line-height: 1.6; background: var(--grey-light); padding: 10px 12px 10px 28px; border-radius: 6px; margin-bottom: 12px; }
 
     /* Daily checkboxes Mon–Fri */
-    .day-checks { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    .day-checks { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
     .day-check { display: flex; flex-direction: column; align-items: center; gap: 4px; }
     .day-check span { font-size: 11px; font-weight: 600; color: var(--grey); }
     .day-check input[type=checkbox] { width: 24px; height: 24px; accent-color: var(--mad-blue); cursor: pointer; }
-    .time-input { font-size: 12px; border: 1px solid var(--border); border-radius: 4px; padding: 3px 5px; width: 60px; text-align: center; }
+    .day-check .day-date { font-size: 11px; border: 1px solid var(--border); border-radius: 4px; padding: 3px 4px; width: 90px; text-align: center; }
+    .day-check .time-input { font-size: 11px; border: 1px solid var(--border); border-radius: 4px; padding: 3px 4px; width: 90px; text-align: center; }
 
     /* Status radio */
     .status-row { display: flex; gap: 10px; margin-bottom: 10px; }
@@ -162,7 +163,7 @@
     <div class="meta-grid">
       <div class="field-group">
         <label>Site / Depot</label>
-        <select id="site" required>
+        <select id="site" required onchange="updateStaffDropdown()">
           <option value="">— Select site —</option>
           <option value="NSW">NSW — Sydney</option>
           <option value="QLD">QLD — Queensland</option>
@@ -175,11 +176,13 @@
       </div>
       <div class="field-group">
         <label>Accredited Person</label>
-        <input type="text" id="accreditedPerson" placeholder="Full name" required />
+        <select id="accreditedPerson" required onchange="fillAccreditationNo()">
+          <option value="">— Select site first —</option>
+        </select>
       </div>
       <div class="field-group">
         <label>Accreditation No.</label>
-        <input type="text" id="accreditationNo" placeholder="e.g. AP-12345" />
+        <input type="text" id="accreditationNo" placeholder="Auto-filled on selection" readonly style="background:#f7f8fa;color:#718096;" />
       </div>
     </div>
     <div class="legend">✔ = Done / No issues &nbsp;|&nbsp; ✘ = Issue found — record details in Notes &nbsp;|&nbsp; Daily = tick Mon–Fri &nbsp;|&nbsp; Weekly = tick once per week (Mon column)</div>
@@ -204,11 +207,11 @@
           <li>Check goods, containers, floor surfaces, racking, wall junctions, drains and corners</li>
         </ul>
         <div class="day-checks" id="7.1-days">
-          <div class="day-check"><span>MON</span><input type="checkbox" data-day="mon" data-ref="7.1" /><input type="time" class="time-input" data-time="mon" data-ref="7.1" /></div>
-          <div class="day-check"><span>TUE</span><input type="checkbox" data-day="tue" data-ref="7.1" /><input type="time" class="time-input" data-time="tue" data-ref="7.1" /></div>
-          <div class="day-check"><span>WED</span><input type="checkbox" data-day="wed" data-ref="7.1" /><input type="time" class="time-input" data-time="wed" data-ref="7.1" /></div>
-          <div class="day-check"><span>THU</span><input type="checkbox" data-day="thu" data-ref="7.1" /><input type="time" class="time-input" data-time="thu" data-ref="7.1" /></div>
-          <div class="day-check"><span>FRI</span><input type="checkbox" data-day="fri" data-ref="7.1" /><input type="time" class="time-input" data-time="fri" data-ref="7.1" /></div>
+          <div class="day-check"><span>MON</span><input type="checkbox" data-day="mon" data-ref="7.1" /><input type="date" class="day-date" data-date="mon" data-ref="7.1" /><input type="time" class="time-input" data-time="mon" data-ref="7.1" /></div>
+          <div class="day-check"><span>TUE</span><input type="checkbox" data-day="tue" data-ref="7.1" /><input type="date" class="day-date" data-date="tue" data-ref="7.1" /><input type="time" class="time-input" data-time="tue" data-ref="7.1" /></div>
+          <div class="day-check"><span>WED</span><input type="checkbox" data-day="wed" data-ref="7.1" /><input type="date" class="day-date" data-date="wed" data-ref="7.1" /><input type="time" class="time-input" data-time="wed" data-ref="7.1" /></div>
+          <div class="day-check"><span>THU</span><input type="checkbox" data-day="thu" data-ref="7.1" /><input type="date" class="day-date" data-date="thu" data-ref="7.1" /><input type="time" class="time-input" data-time="thu" data-ref="7.1" /></div>
+          <div class="day-check"><span>FRI</span><input type="checkbox" data-day="fri" data-ref="7.1" /><input type="date" class="day-date" data-date="fri" data-ref="7.1" /><input type="time" class="time-input" data-time="fri" data-ref="7.1" /></div>
         </div>
         <div class="status-row">
           <div class="status-btn ok" data-ref="7.1" data-val="ok">✔ No Issues</div>
@@ -250,7 +253,7 @@
           <li>Note: pot plants are NOT permitted inside any biosecurity area building</li>
         </ul>
         <div class="day-checks">
-          <div class="day-check"><span>THIS WEEK</span><input type="checkbox" data-day="mon" data-ref="7.5" /><input type="time" class="time-input" data-time="mon" data-ref="7.5" /></div>
+          <div class="day-check"><span>THIS WEEK</span><input type="checkbox" data-day="mon" data-ref="7.5" /><input type="date" class="day-date" data-date="mon" data-ref="7.5" /><input type="time" class="time-input" data-time="mon" data-ref="7.5" /></div>
         </div>
         <div class="status-row">
           <div class="status-btn ok" data-ref="7.5" data-val="ok">✔ No Vegetation Found</div>
@@ -401,8 +404,65 @@
   const photoData = {};
   const statusValues = {};
 
-  // Set today's date defaults
-  window.addEventListener('DOMContentLoaded', () => {
+  // Accredited staff by site
+  const STAFF = {
+    WA: [
+      { name: 'Rhys McGlone',        cert: '84-202603-1578462' },
+      { name: 'Jason Lewis-Johnston', cert: '84-202603-1531381' },
+    ],
+    NSW: [
+      { name: 'Otis Cooper',              cert: '80860' },
+      { name: 'Daniel McIntyre',          cert: '70595' },
+      { name: 'Eduardo Fassarella Pereira', cert: '10845-9998' },
+      { name: 'Jeremy Kapinga',           cert: '80861' },
+    ],
+    QLD: [
+      { name: 'Monique Woods',   cert: '0032520' },
+      { name: 'Chris O\'Callaghan', cert: '71021' },
+      { name: 'David Waterman', cert: '79506' },
+      { name: 'Daryl McIntyre', cert: '0029883' },
+      { name: 'Brett Lawrence', cert: '0012299' },
+      { name: 'Koby Holzberger', cert: '76350' },
+    ],
+  };
+
+  function updateStaffDropdown() {
+    const site = document.getElementById('site').value;
+    const sel = document.getElementById('accreditedPerson');
+    sel.innerHTML = '<option value="">— Select person —</option>';
+    document.getElementById('accreditationNo').value = '';
+    if (!site || !STAFF[site]) return;
+    STAFF[site].forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.name;
+      opt.dataset.cert = s.cert;
+      opt.textContent = s.name;
+      sel.appendChild(opt);
+    });
+  }
+
+  function fillAccreditationNo() {
+    const sel = document.getElementById('accreditedPerson');
+    const opt = sel.options[sel.selectedIndex];
+    document.getElementById('accreditationNo').value = opt?.dataset?.cert || '';
+  }
+
+  // Auto-fill Mon–Fri dates from week commencing date
+  document.getElementById('weekDate').addEventListener('change', function() {
+    const monday = new Date(this.value + 'T00:00:00');
+    if (isNaN(monday)) return;
+    const days = ['mon','tue','wed','thu','fri'];
+    days.forEach((day, i) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const iso = d.toISOString().split('T')[0];
+      document.querySelectorAll(`input[data-date="${day}"]`).forEach(el => { el.value = iso; });
+    });
+    // Also set 7.5 weekly date to Monday
+    document.querySelectorAll('input[data-date="mon"][data-ref="7.5"]').forEach(el => {
+      el.value = this.value;
+    });
+  });
     const today = new Date();
     document.getElementById('signDate').value = today.toISOString().split('T')[0];
     // Set week commencing to most recent Monday
@@ -475,17 +535,22 @@
     refs.forEach(ref => {
       const dayCheckboxes = {};
       const dayTimes = {};
+      const dayDates = {};
       document.querySelectorAll(`input[type=checkbox][data-ref="${ref}"]`).forEach(cb => {
         dayCheckboxes[cb.dataset.day] = cb.checked;
       });
       document.querySelectorAll(`input[type=time][data-ref="${ref}"]`).forEach(ti => {
         dayTimes[ti.dataset.time] = ti.value;
       });
+      document.querySelectorAll(`input[data-date][data-ref="${ref}"]`).forEach(di => {
+        dayDates[di.dataset.date] = di.value;
+      });
       const notesEl = document.querySelector(`textarea[data-notes="${ref}"]`);
       checks[ref] = {
         status: statusValues[ref] || null,
         days: dayCheckboxes,
         times: dayTimes,
+        dates: dayDates,
         notes: notesEl ? notesEl.value : '',
         photos: (photoData[ref] || []).map(p => ({ name: p.name, data: p.data }))
       };
@@ -517,7 +582,7 @@
   function validate(data) {
     if (!data.meta.site) return 'Please select a site / depot.';
     if (!data.meta.weekDate) return 'Please enter the week commencing date.';
-    if (!data.meta.accreditedPerson.trim()) return 'Please enter the accredited person name.';
+    if (!data.meta.accreditedPerson || data.meta.accreditedPerson === '') return 'Please select the accredited person.';
     if (!data.signoff.name.trim()) return 'Please enter a print name for sign-off.';
     if (!data.signoff.date) return 'Please enter the completion date.';
     return null;
@@ -539,7 +604,15 @@
     const hasIssues = Object.values(c).some(ch => ch.status === 'issue' || ch.status === 'triggered');
 
     const statusLabel = st => ({ ok:'✔ No Issues', issue:'✘ Issue Found', triggered:'✘ TRIGGERED', clear:'✔ Not Triggered' }[st] || '—');
-    const daysStr = days => Object.entries(days||{}).filter(([,v])=>v).map(([d])=>d.toUpperCase()).join(', ') || 'None ticked';
+    const daysStr = (days, times, dates) => {
+      const order = ['mon','tue','wed','thu','fri'];
+      return order.filter(d => days && days[d]).map(d => {
+        const date = dates && dates[d] ? dates[d] : '';
+        const time = times && times[d] ? times[d] : '';
+        const label = d.charAt(0).toUpperCase() + d.slice(1);
+        return `${label}${date ? ' '+date : ''}${time ? ' '+time : ''}`;
+      }).join(', ') || 'None ticked';
+    };
 
     let body = '';
     body += `CLASS 1.3 SITE HYGIENE MONITORING CHECKLIST\n`;
@@ -570,7 +643,7 @@
       if (!ch.status) return;
       body += `${ref} — ${label}\n`;
       body += `    Status: ${statusLabel(ch.status)}\n`;
-      if (ch.days) body += `    Days completed: ${daysStr(ch.days)}\n`;
+      if (ch.days) body += `    Days completed: ${daysStr(ch.days, ch.times, ch.dates)}\n`;
       if (ch.notes) body += `    Notes: ${ch.notes}\n`;
       if (ch.photos && ch.photos.length) body += `    Photos: ${ch.photos.length} photo(s) attached (see admin portal)\n`;
       body += '\n';
