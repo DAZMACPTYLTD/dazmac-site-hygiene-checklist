@@ -153,7 +153,7 @@
       <h1>Class 1.3 — Site Hygiene Monitoring Checklist</h1>
       <p>Table 7 · DAFF December 2025 · Accredited Persons Only</p>
     </div>
-    <span class="version-badge">v1.3 · 11 Jun 2026</span>
+    <span class="version-badge">v1.4 · 11 Jun 2026</span>
   </div>
 </div>
 
@@ -449,10 +449,22 @@
     document.getElementById('accreditationNo').value = opt?.dataset?.cert || '';
   }
 
-  // Auto-fill Mon–Fri dates from week commencing date
-  document.getElementById('weekDate').addEventListener('change', function() {
-    const monday = new Date(this.value + 'T00:00:00');
-    if (isNaN(monday)) return;
+  // Set today's date defaults and wire up weekDate auto-fill
+  window.addEventListener('DOMContentLoaded', () => {
+    const today = new Date();
+    document.getElementById('signDate').value = today.toISOString().split('T')[0];
+    // Set week commencing to most recent Monday
+    const day = today.getDay();
+    const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(today);
+    monday.setDate(diff);
+    document.getElementById('weekDate').value = monday.toISOString().split('T')[0];
+    // Auto-fill Mon–Fri dates for current week
+    fillDatesFromMonday(monday);
+  });
+
+  // Auto-fill Mon–Fri dates when week commencing changes
+  function fillDatesFromMonday(monday) {
     const days = ['mon','tue','wed','thu','fri'];
     days.forEach((day, i) => {
       const d = new Date(monday);
@@ -460,18 +472,17 @@
       const iso = d.toISOString().split('T')[0];
       document.querySelectorAll(`input[data-date="${day}"]`).forEach(el => { el.value = iso; });
     });
-    // Also set 7.5 weekly date to Monday
+    // 7.5 weekly date = Monday
     document.querySelectorAll('input[data-date="mon"][data-ref="7.5"]').forEach(el => {
-      el.value = this.value;
+      el.value = monday.toISOString().split('T')[0];
     });
-  });
-    const today = new Date();
-    document.getElementById('signDate').value = today.toISOString().split('T')[0];
-    // Set week commencing to most recent Monday
-    const day = today.getDay();
-    const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(today.setDate(diff));
-    document.getElementById('weekDate').value = monday.toISOString().split('T')[0];
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('weekDate').addEventListener('change', function() {
+      const monday = new Date(this.value + 'T00:00:00');
+      if (!isNaN(monday)) fillDatesFromMonday(monday);
+    });
   });
 
   // Status buttons
